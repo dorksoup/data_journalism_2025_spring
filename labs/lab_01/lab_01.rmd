@@ -63,7 +63,17 @@ umd_courses |>
     arrange(desc(class_count))
   
 ```
+```{r}
+umd_courses_counted <- umd_courses |>
+  group_by(id) |> 
+  summarise(
+    class_count = n() #this is how to count the number of all the data ,,, within the group by (if under paranteses)
+  ) |>
+    arrange(desc(class_count))
 
+umd_courses_counted
+  
+```
 **Q3** Count the number of courses for each instructor and department. Which instructor has taught the most?
 **A3** Geographical Sciences	Keith Yearwood because that instructor is the highest class number that is named 
 
