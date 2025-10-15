@@ -124,13 +124,13 @@ ses_moore_expenses <- maryland_expenses |>
 mutate(
   spending_location = case_when(
     str_detect(address, "Maryland") ~ "In-State",
-    TRUE ~ "Out of State")
-)
+    .default = "Out of State") #.default 
+) 
 
 spending_summary <- ses_moore_expenses |>
   group_by(spending_location) |>
   summarise(
-    total_spent = sum(amount, na.rm = TRUE),
+    total_spent = sum(amount)
   )
 
 spending_summary
