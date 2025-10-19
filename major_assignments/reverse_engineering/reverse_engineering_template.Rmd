@@ -1,6 +1,6 @@
 ---
 title: "Reverse Engineering Project"
-author: "Student names here"
+author: "Alex Taylor, Jordan Fine, Devin Etta"
 date: "Date here"
 output:
   html_document:
@@ -18,14 +18,17 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction 
 
-In this notebook, we are reverse engineering the story, [STORY NAME](STORY URL)
+In this notebook, we are reverse engineering the story, [Inside the Political donation history of Wealthy Sports Owners] (https://fivethirtyeight.com/features/inside-the-political-donation-history-of-wealthy-sports-owners/
+
 
 ## Load libraries
 
 Loading required libraries for this analysis.
 
 ```{r echo=FALSE, message=FALSE}
-
+library(tidyverse)
+library(janitor)
+library(lubridate)
 ```
 
 ## Load and Cleaning Data
@@ -34,7 +37,7 @@ In this section, describe the source of the data, write a basic data dictionary 
 
 ```{r}
 # Load required data
-
+Donations <- read_csv("data/sports-political-donations.csv")
 # Path to data should be loaded from folder "data" i.e. read_csv("data/name_of_data.csv")
 
 # Clean required data and prepare for analysis if needed. 
@@ -47,8 +50,11 @@ In this notebook, we are reverse engineering five sentences from the story.
 
 ### Sentence 1
 
-* **Sentence text**: [Paste in sentence to engineer here]
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Sentence text**: “American professional sports owners have contributed nearly $47 million in federal elections since 2015... $34.2 million (72.9 percent) [went] to Republican campaigns or super PACs… compared to $10.1 million (21.5 percent) to Democrats.”
+
+* **Analysis summary**: 
+I think this quote includes an interesting statistic that provides the main point of the article. There is a big difference in how much money went to republicans vs democrats, this could mean something important or make for an important story. 
+
 
 ```{r}
 # Put code to reverse engineer sentence here
@@ -59,8 +65,10 @@ In this notebook, we are reverse engineering five sentences from the story.
 
 ### Sentence 2
 
-* **Sentence text**: [Paste in sentence to engineer here]
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Sentence text**: "Drilling down deeper into the data, we can see that federal contributions in each league lean red, except for in the WNBA:... Overall, 51.7 percent of all contributions by WNBA owners went to Democrats, with 42.3 percent going to Republicans."
+
+
+* **Analysis summary**:I think this is another interesting statistic that highlights a possible difference between the WNBA and other leagues. I am wondering why the reason for this is, and what makes the WNBA different? This will be interesting data to analyze. 
 
 ```{r}
 # Put code to reverse engineer sentence here
@@ -71,8 +79,10 @@ In this notebook, we are reverse engineering five sentences from the story.
 
 ### Sentence 3
 
-* **Sentence text**: [Paste in sentence to engineer here]
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Sentence text**: Of the 160 owners and commissioners in ESPN’s database, 74 contributed a majority of their publicly searchable funds to Republican campaigns, with 48 donating a majority to Democrats and the rest sending most of their money to causes that aren’t fully aligned with either party.
+
+
+* **Analysis summary**: This statistic is important to the story because it gives a general overview of how the owners’ and commissioners’ donating habits. This is important context to have before the reader dives into further breakdown of the results.
 
 ```{r}
 # Put code to reverse engineer sentence here
@@ -83,8 +93,9 @@ In this notebook, we are reverse engineering five sentences from the story.
 
 ### Sentence 4
 
-* **Sentence text**: [Paste in sentence to engineer here]
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Sentence text**: Thirteen owners have contributed directly to Trump’s campaign or Trump super PACs in the 2020 election cycle, with contributions adding up to $1,746,423… By contrast, 20 owners have contributed directly to Biden or Biden’s super PACs, though at smaller totals, with overall contributions equaling $405,745.
+
+* **Analysis summary**: This sentence is important because it ties these political contributions directly to the major candidates in a recent election. The analysis for this also seems to be fairly straightforward to find using the filter(), group_by() and summarise() functions. 
 
 ```{r}
 # Put code to reverse engineer sentence here
@@ -95,8 +106,10 @@ In this notebook, we are reverse engineering five sentences from the story.
 
 ### Sentence 5
 
-* **Sentence text**: [Paste in sentence to engineer here]
-* **Analysis summary**: [Write up two to three sentences describing the results of your analysis.  Were you able to confirm the finding? If not, why not?]
+* **Sentence text**: “Forty owners account for more than $40 million — more than 85 percent of all contributions. And looking specifically at these big spenders, it’s clear where their allegiances lie: 77.7 percent of that $40 million went to Republican causes or candidates, with 18.8 percent going to Democrats.” 
+
+
+* **Analysis summary**: This paragraph displays a statistic that slices the data and looks at the top donors. The github data from the article helps to list the owners and their sport teams that have a concentrated spending power. The analysis could be easy by just filtering the minimum spending amount to only display those donors. Either the data can be grouped by donations, or just the owners. 
 
 ```{r}
 # Put code to reverse engineer sentence here
