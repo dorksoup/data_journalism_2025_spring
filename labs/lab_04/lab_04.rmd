@@ -26,6 +26,9 @@ You'll need to load three packages for this: the tidyverse, lubridate and janito
 options(scipen=999)
 
 # load your packages
+library(tidyverse)
+library(lubridate)
+library(refinr)
 
 ```
 
@@ -41,6 +44,38 @@ You'll need to load one data set, a CSV file of Maryland campaign expenditures l
 
 ```{r}
 # Load the Maryland expenditures data table
+
+library(readr)
+maryland_expenses <- read_csv("Documents/GitHub/data_journalism_2025_spring/labs/lab_04/data/maryland_expenses.csv")
+(maryland_expenses)
+
+
+library(dplyr)      # For data manipulation
+library(lubridate)  # For date handling
+library(stringr)    # For string manipulation
+library(janitor)    # For cleaning column names
+
+# Display the cleaned data frame
+cleaned_md_expenses <- maryland_expenses |> 
+  mutate(date = mdy(`Expenditure Date`)) |> 
+  clean_names() |> 
+  mutate(
+    payee_name = str_to_upper(payee_name),
+    committee_name = str_to_upper(committee_name),
+    description = str_to_upper(comments),
+    expense_method = str_to_lower(expense_method),
+    
+  )
+
+
+
+
+ 
+
+head(cleaned_md_expenses)
+
+
+
 ```
 
 ## Answer questions
@@ -56,26 +91,84 @@ You'll need to load one data set, a CSV file of Maryland campaign expenditures l
 **A1.**
 
 ```{r}
+mrmedia <- cleaned_md_expenses |>
+  filter(
+    expense_category == "Media", 
+    payee_name != "NA"
+    )
+
+head(mrmedia)
+
+#make a csv file for media expenses file path
+
+write_csv(mrmedia, "data/mrmedia")
+
+#after cleaning on Open Refine 
+
+clean_mrmedia <- read_csv("data/clean_mrmedia.csv")
+
+head(clean_mrmedia)
+# calculate the total amount (at the end, summarize and the sum of  amount) of Facebook (or meta) spending by each committee (group by committee) and present the results showing the committee that spent the most first (arrange descendign order) .
+
+clean_mrmedia |>
+  filter(str_detect(payee_clean, "META")) |>
+  group_by(committee_name) |>
+  summarize(total_mrspend =sum(amount)) |>
+  arrange(desc(total_mrspend))
+
 ```
 
 **Q2.** Let's do some research on the top committees from question 1. Look up the top 10 spenders: if they are candidate committees, what offices were they running for? If they were not candidates, what issues do they seem to care about? Write some sentences answering those questions, then go the Facebook ad library ([https://www.facebook.com/ads/library/?active_status=all&ad_type=political_and_issue_ads&country=US&sort_data\\[direction\\]=desc&sort_data\\[mode\\]=relevancy_monthly_grouped&media_type=all](https://www.facebook.com/ads/library/?active_status=all&ad_type=political_and_issue_ads&country=US&sort_data%5Bdirection%5D=desc&sort_data%5Bmode%5D=relevancy_monthly_grouped&media_type=all){.uri}) and look for ads from the top spender. What do you notice about the the information provided about those ads?
 
 **A2.**
+Candidates for office --
+- JASANI SALIMAH : Baltimore City Board of School Commissioners
+- SHUMAN EVE T. : Democratic Candidate for PG County Council District 3
+- MAX SOCOL : Maryland Senate
+- MINK KRISTIN, BROOKS BRANDY, NATALI FANI-GONZALEZ : Montgomery County Council
+- JESSE PIPPY : Maryland House of Delegate (Frederick)
+- RICHARD D FRITZ : Maryland State Attorney (St. Mary)
+- Izzy Pakota - Baltimore County Council. 
+Of those that were not candidates for office --
+- CASA is an organization that advocates for immigrant rights.
+
+When looking at the one of the spenders ad dat, it shares the estimated audience size, amount spent in USD, and the ads impressions. Theyre in ranges though. CASA spend under 100 dollars for each off its 300+ ads 
 
 **Q3.** Given the list of top spenders in A1 and the primary results for governor (<https://elections.maryland.gov/elections/2022/primary_results/gen_results_2022_1.html>), who is missing from that Q1 list? Did those campaigns run Facebook ads? Who are the biggest recipients of media expenses by the Democratic primary winner for governor (HINT: that person has two committees, the second one with his running mate)?
 
-**A3.**
+**A3.** my first thoughts of who is missing from the Meta's ad data is Dan Cox and Wes Moore, the primary candidates for Maryland elections. However when I look at the current governor Moore's, he ran adds during 2021-2022. Usually paid by Mary Tyding treasure. #after the coding, the biggest media expenses by Wes Moore's committee are SKDK, a political consulting firm; Foglamp, an advertising firm; and Apollo Artistry, a digital developer. 
+
 
 ```{r}
+clean_mrmedia |>
+  filter(committee_name == "MOORE  WES FOR MARYLAND" | committee_name == "MOORE MILLER FOR MARYLAND SLATE") |>
+  group_by(payee_clean) |>
+  summarise(total_spend_moore = sum(amount)) |>
+  arrange(desc(total_spend_moore))
+
 ```
 
 **Q4.** The media expense data you cleaned also has a standardized purpose column. Write code to generate a list of the committees with the total amount of spending on online advertising. How does this list compare to the one from Q1 about top Facebook spenders? Of the top 5 committees who spent the most on Facebook ads from Q1, are there any that appear to have spent *all* of their online advertising dollars on Facebook?
 
 **A4.**
+CASA  seems to also appear on the list of committees that spend making online advertising media ads/ It looks like the committees for Ashwani Jain spent all of their online advertising money on Facebook.
 
 ```{r}
+clean_mrmedia |>
+  filter(expense_purpose == "Online Advertising")|>
+  group_by(committee_name) |>
+  summarise(total_spend_ad = sum(amount)) |>
+  arrange(desc(total_spend_ad))
+  
 ```
 
 **Q5** Your editor asks you to summarize your findings about spending on Facebook by Maryland political candidates. How much do we know and what don't we know? What's the best story idea you've found here?
 
 **A5**
+We see the candiates and how much they spent within Meta/Facebook, but we cant differiate if the ads are on Instagram or just Facebook. The dataset by itself doesn't soley show the type of ad, that has to be combined with the Meta ad library. With that, I can figure out which type of parties that are spending the most on Facebook ads for the 2022 maryland expenses. But For know I can figure out the total spending of all the spending on Meta. I put all the facebook and meta as just Meta.     
+
+```{r}
+cleaned_maryland_expenses_media |> 
+  filter(str_detect(payee_clean, "Meta")) |>
+  summarise(total_spend = sum(amount))
+
