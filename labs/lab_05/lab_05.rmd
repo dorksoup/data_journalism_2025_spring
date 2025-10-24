@@ -1,0 +1,107 @@
+---
+title: "lab_05"
+author: "Derek Willis"
+date: "2025-01-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## You will need
+
+-   Tabula
+
+## Load libraries and establish settings
+
+```{r}
+# Turn off scientific notation
+options(scipen=999)
+
+# Load the tidyverse, plus any other packages you will need to clean data and work with dates.
+
+```
+
+## Get Our PDF
+
+We'll be working with the [911 overdose calls from Baltimore County](https://drive.google.com/file/d/1qkYuojGF_6WKFr5aNQxmewDzcKyOiJFr/view?usp=share_link). You'll want to download it to a place you'll remember (like your Downloads folder, or the labs folder in your repository). The goal is to extract the tables within it, export that to a CSV file, load it into RStudio and ask some questions.
+
+## Extract Data from PDF Using Tabula
+
+Start Tabula, then go to <http://127.0.0.1:8080/> in your browser. Click the "Browse" button and find the PDF file and click "open", and then click the "Import button" in Tabula. This will take a few seconds or longer.
+
+This PDF has a single table spread over multiple pages to extract. We're going to make a single dataframe from this table, exporting it to a CSV file that you will load into R. In Tabula, highlight the table and click the "Preview & Export Extracted Data" button. You may want to play with including or excluding the column headers - YOU SHOULD HAVE FIVE COLUMNS OF DATA.
+
+Save the CSV (it should be called `tabula-Baltimore County; Carey, Samantha log OD.csv` by default) to your lab_05/data folder.
+
+From there, you will need to read in the data, and add or fix headers if necessary. You can choose to include the headers from the PDF in your exported CSV files OR to exclude them and add them when importing. `read_csv` allows us to do this ([and more](https://readr.tidyverse.org/reference/read_delim.html)).
+
+## Load and clean up the data in R
+
+You will need to read in and clean up the data so that it can be used for analysis. By "clean" I mean the column headers should not contain spaces and they should have meaningful names, not "x1" or something similar. How you do that is up to you, but you can use select() with or without the minus sign to include or exclude certain columns. You also can use the `rename` function to, well, rename columns. Importantly, you'll need to ensure that any columns containing a date actually have a date datatype. Our friend `lubridate` can help with this.
+
+```{r}
+baltimore_od <- read_csv("/Users/devindork/Documents/GitHub/data_journalism_2025_spring/labs/lab_05/data/tabula_baltimore_county_od.csv", col_names = FALSE) |> 
+  clean_names() |> 
+  rename(date = x1, time = x2, case_number = x3, ev_type = x4, location = x5) |>
+  mutate(date = mdy(date))
+
+head(baltimore_od)
+
+
+
+```
+
+## Answer questions
+
+Q1. Write code to generate the number of calls that occurred on each date. Which date in 2022 had the most overdose calls, and how many? Look at the total number of rows in your result and explore the range of dates - based on your result, do you believe there are any days with no overdose calls at all? Explain why or why not.
+
+A1. July 14th and October 4th have the most calls pretaining overdoses: 23. Since the tibble only has 239 rows, with each row pretaining one day, I can coclude that there are some dates without any input of overdose calls. 
+
+```{r}
+baltimore_od |>
+  filter(str_detect (date, "2022"))|> #i have to do string detect so it can read any lines that contained 2022, filter by itself would kook for the whole line
+  group_by(date)|>
+  summarize(call_total = n()) |>
+  arrange(desc(call_total))
+    
+
+```
+
+Q2. You want to understand if there's a pattern in the day of the week that overdose calls are made. Add a column to your dataframe that displays what day of the week each date represents. You should search for how to do that using lubridate. Then write code to calculate the number of calls for each day of the week, and add a column to that result that calculates the percentage of all calls that occurred on each day of the week (so you want a dataframe with the day of the week, total number of calls and the percentage of calls on that day out of the total number of all calls). Describe your findings to me.
+
+A2. Saturdays had the highest amount of overdose calls with 638, however its a almost even split. 15 - 12 percent for each 7 days. Saturday, Sunday, Friday have the biggest percentage and those are the weekend. 
+
+```{r}
+baltimore_od_data <- baltimore_od |>
+  mutate(
+    day = wday(date, label = TRUE, abbr = TRUE) #the label shows the day of the week spelling, abbr self explainatory 
+  )
+
+baltimore_od_data |> 
+  group_by(day) |>
+  summarize(count=n()) |>
+  mutate (
+    wday_pct = count/sum(count)*100
+  ) |>
+  arrange(desc(wday_pct))
+
+
+```
+
+Q3. Now let's look at locations. Which ones have the most calls? How would you describe them (feel free to search for more information on them)? Is there anything about the structure of the original data that might make you less confident in the counts by location or date?
+
+A3. 4540 Silver Spring Rd and 330 Leeanne Rd are regular homes while another result in the top 4 is police precincts PC 02 and PC 06.However, locations like those have another location attached to it. the original data also just had date years with the last two digits so it can cause confustion when using tabula. 
+
+```{r}
+baltimore_od_data |>
+  group_by(location) |>
+  summarize(count =n()) |>
+  arrange(desc(count))
+
+```
+
+Q4. What's the best story idea or question you've seen as a result of the work you've done in this lab?
+
+A4. I think the best story is the amount of phone calls in the one regular house locations. It's very interesting but why is it only in this location? Does that mean it is a cneter of responses? 
