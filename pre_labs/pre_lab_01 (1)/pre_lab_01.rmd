@@ -224,7 +224,16 @@ umd_courses |>
     # add maximum seats here
   ) |>
   arrange(desc(total_seats))
-  
+   
+f <- function(r) {
+  left_side <- 35 * (1 - (1 + r)^-24) / r + 1000 / (1 + r)^24
+  return(left_side - 1250)
+}
+
+# Use uniroot to find the root
+result <- uniroot(f, c(0.0001, 0.1))  # Adjust the range as needed
+interest_rate <- result$root
+interest_rate
 ```
 
 Compared to the previous codeblock, what has changed and how did that affect the result? How is the data sorted?

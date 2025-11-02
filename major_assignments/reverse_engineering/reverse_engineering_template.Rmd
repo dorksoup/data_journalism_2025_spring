@@ -41,7 +41,11 @@ Donations <- read_csv("data/sports-political-donations.csv")
 # Path to data should be loaded from folder "data" i.e. read_csv("data/name_of_data.csv")
 
 # Clean required data and prepare for analysis if needed. 
+Clean_Donations <- Donations |>
+  clean_names() |>
+  mutate(amount = as.numeric(gsub("[$,]","",amount))) 
 
+Clean_Donations
 
 ```
 
@@ -72,8 +76,22 @@ I think this quote includes an interesting statistic that provides the main poin
 
 ```{r}
 # Put code to reverse engineer sentence here
+WNBA_Contribs <- Clean_Donations |>
+  filter(league == "WNBA") |>
+  group_by(party) |>
+  summarise(numb_contrib = n())
+
+# Find the percentage of contributions each party got
+WNBA_Contribs <- WNBA_Contribs |>
+  mutate(
+    pct_contrib = numb_contrib / sum(numb_contrib) * 100
+  )
 
 # Display results of code below this codeblock
+WNBA_Contribs
+
+
+
 
 ```
 
@@ -85,6 +103,8 @@ I think this quote includes an interesting statistic that provides the main poin
 * **Analysis summary**: This statistic is important to the story because it gives a general overview of how the owners’ and commissioners’ donating habits. This is important context to have before the reader dives into further breakdown of the results.
 
 ```{r}
+
+# to do this code, we have group by owner name since each owner has individual entries. 
 # Put code to reverse engineer sentence here
 
 # Display results of code below this codeblock
@@ -114,8 +134,38 @@ I think this quote includes an interesting statistic that provides the main poin
 ```{r}
 # Put code to reverse engineer sentence here
 
+#THE DATA needs to be clean like this because the amount data set needs to be set to numeric
+clean_Donations <- Donations |>
+  clean_names() |>
+  mutate(amount = as.numeric(gsub("[$,]","",amount))) 
+
+Clean_Donations
+
+
+
+#top 40 donations code  
+top_40donations <- Clean_Donations |>
+  group_by(owner) |>
+  summarize(total_amount = sum(amount))|>
+  top_n(40,total_amount) |>
+  summarize(total_from40 = sum(total_amount))
+
+top_40donations
+   #calculate the total contributions       
+ total_donation_amount <- sum(Clean_Donations$amount)
+   
+ #percentage 
+ percent_top40 <- (top_40donations$total_from40/ total_donation_amount) * 100
+
 # Display results of code below this codeblock
+  
+ #the percent of the top 40 owners 
+ percent_top40
 
 ```
 
 -30-
+
+```{r}
+
+```
