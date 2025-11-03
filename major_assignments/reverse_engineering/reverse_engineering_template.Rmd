@@ -52,7 +52,7 @@ Clean_Donations
 ## Sentences to Engineer
 In this notebook, we are reverse engineering five sentences from the story.
 
-### Sentence 1
+### Sentence 1 
 
 * **Sentence text**: “American professional sports owners have contributed nearly $47 million in federal elections since 2015... $34.2 million (72.9 percent) [went] to Republican campaigns or super PACs… compared to $10.1 million (21.5 percent) to Democrats.”
 
@@ -61,9 +61,30 @@ I think this quote includes an interesting statistic that provides the main poin
 
 
 ```{r}
-# Put code to reverse engineer sentence here
+ #JORDAN'S CODE
+# First, I am making two new data tables that will show me democratic and republican donors separately. I want to see who is donating the most, to which team, and in which party. 
 
-# Display results of code below this codeblock
+republican_donors <- Clean_Donations |>
+  filter(party == "Republican")
+
+democrat_donors <- Clean_Donations |>
+  filter(party == "Democrat")
+#Now I have two more datasets that show me who is donating and which party they are in.I notice that there are significantly more observations in the republican dataset. This makes sense because significantly more people donated. 
+
+#I am now writing code to find out how much money each party received in total, and even the average donation amount, I can also look at how many donors gave to each party.
+
+Clean_Donations |>
+  group_by(party) |>
+  summarize(
+    total_donated = sum(amount, na.rm = TRUE),
+    average_donation = mean(amount, na.rm = TRUE),
+    number_of_donors = n()
+  ) |>
+  arrange(desc(total_donated))
+#This data is telling me the average donation amounts for each political party, that is pretty cool! The data isn't all that surprising, seeing as Republicans donated the most. I do find it interesting that the number of doners doesn't exactly mirror the total amount donated. 
+
+
+
 
 ```
 
@@ -75,6 +96,8 @@ I think this quote includes an interesting statistic that provides the main poin
 * **Analysis summary**:I think this is another interesting statistic that highlights a possible difference between the WNBA and other leagues. I am wondering why the reason for this is, and what makes the WNBA different? This will be interesting data to analyze. 
 
 ```{r}
+
+#Alex Code
 # Put code to reverse engineer sentence here
 WNBA_Contribs <- Clean_Donations |>
   filter(league == "WNBA") |>
@@ -132,6 +155,8 @@ WNBA_Contribs
 * **Analysis summary**: This paragraph displays a statistic that slices the data and looks at the top donors. The github data from the article helps to list the owners and their sport teams that have a concentrated spending power. The analysis could be easy by just filtering the minimum spending amount to only display those donors. Either the data can be grouped by donations, or just the owners. 
 
 ```{r}
+
+#devins code: i already know this isnt going to be effective 
 # Put code to reverse engineer sentence here
 
 #THE DATA needs to be clean like this because the amount data set needs to be set to numeric
@@ -167,5 +192,11 @@ top_40donations
 -30-
 
 ```{r}
+top40_party <- Clean_Donations |>
+  group_by(owner,party) |>
+  summarize (total_amount = sum(amount)) |>
+  top_n(40, total_amount)
+
+top40_party
 
 ```
