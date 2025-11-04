@@ -126,11 +126,35 @@ balt_18_over |>
   ) |>
   arrange(desc(callsper_capita))
 
+baltimore_overdose_demogr |>
+  filter(zip_code == 21217) |>
+  group_by(neighborhood) |>
+  summarise(mean(pct_black_non_hispanic), mean(pct_white_non_hispanic), mean(pct_hispanic), mean(medage), mean(pct_homeowner))
+  
+
 ```
 
 Q4. Choose your own adventure: I want you to come up with a question you could ask of the Baltimore City data that combines both the calls and the demographic information. You must use both demographics and the overdose call data in your work.
 
-A4:
+A4: What is the percentage of calls from the top native populated zip codes 
 
 ```{r}
+baltimore_overdose_demogr |>
+  group_by(zip_code) |>
+  summarise(avg_native= mean(pct_native)) |>
+  arrange(desc(avg_native))
+
+# finding the percentage of each zipcode given from last code 
+ baltimore_overdose_demogr|>
+  filter(zip_code == 21222 |
+           zip_code == 21224 |
+           zip_code == 21231 |
+           zip_code == 21226 |
+           zip_code == 21205) |>
+  group_by(zip_code) |>
+  summarise(calls = n()) |>
+  arrange(desc(calls))
+  
+callsmean = sum(calls) / 5 * 100
+  
 ```
