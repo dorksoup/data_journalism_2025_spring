@@ -69,9 +69,12 @@ md_median <- get_acs(geography = "county",
   
 ```
 
-**Q2** Which Maryland counties have a median age of at least 50? You can use the dataframe you just made to answer this, but you must write code to display only those counties with a median age of at least 50. **A2**
+**Q2** Which Maryland counties have a median age of at least 50? You can use the dataframe you just made to answer this, but you must write code to display only those counties with a median age of at least 50. **A2** Talbot County and Worcester County. 
 
 ```{r}
+md_median|>
+  filter (estimate >=50)
+  
 ```
 
 **Q3** We're interested in knowing more about Montgomery County zip codes where overdose calls are coming from and the demographic characteristics they possess. In particular, we want to calculate a rate of calls per 1,000 population. To do this, you'll need to:
@@ -84,19 +87,72 @@ md_median <- get_acs(geography = "county",
 6.  Add a column to the joined dataframe that calculates a rate of calls per 1,000 population.
 
 Which zip code has the highest rate of calls? Which has the lowest?
-
+20889 had the most calls while 20707 had the least
 **A3**
 
 ```{r}
+moco_overdoses <- read_csv("data/montgomery_2022_overdoseses.csv")
+
+#make a dataset with the totalnumber of calls for each zipcode
+
+moco_zipcode_calls <- moco_overdoses |> group_by(zip) |> summarise(calls = n())
+
+moco_zipcode_calls 
+
+#then i need to find the acs variable that has total 18 and up population: ->  B09021_001 Estimate!!Total: Living Arrangements of Adults 18 Years and Over
+
+#zcta means zip code remember, get acs data from all md zipcodes using that variable 
+
+over_18_md <- get_acs(geography = "zcta",
+                           variables = "B09021_001",
+                           year = 2022)
+
+#join the acs data to moco zip code totals data frame and rename the estimate column to a meaningful name you've given the acs variables 
+
+over_18_md_2022 <- over_18_md |>
+  clean_names() |>
+  rename(
+    zip = geoid
+  )
+ 
+moco_zipcode_calls <- moco_zipcode_calls |>
+  mutate(
+    zip = as.character(zip)
+  )
+
+moco_zipcode_calls <-moco_zipcode_calls |>
+  left_join(over_18_md_2022) |>
+  rename(over18 = estimate)
+#adding column to joun data frame that calcuate rate of calls per 1000pop
+moco_zipcode_calls <- moco_zipcode_calls|>
+  mutate(
+    calls_pct = calls/over18 * 1000
+  )
+                           
+moco_zipcode_calls |>
+  arrange(desc(calls_pct))
 ```
+
 
 **Q4** Using [CensusReporter.org](https://censusreporter.org/), examine the zip codes with the highest and lowest rates and compare and contrast their demographic profiles. Is there a story here?
 
-**A4**
+**A4** Zipcode areas with high overdose rates have mostly white men with 100k plus salary, which contrast from the areas with low rates of overdoses have diverse demographics. There could be a story about how certain populations, in this case white men with high finances report and call for overdoses more than diverse demographics. Maybe there is more resources in those zipcodes 
 
 **Q5** Go back to your joined dataframe from Q3 and add two more columns representing the minimum and maximum populations based on the estimate and margin of error, then calculate per capita rates for each. Do you get the same two zip codes for the highest and lowest as you did before? Does that give you more or less confidence in your answers to Q3?
 
-**A5**
+**A5** same zipcodes as before for the max population but the minimum population are different zipcodes. Whenb a population is lower than the margin of error(like 20988), there will be negative minimum population and holds each overdose call with a higher weight to per capita value compared to other zipcodes (the ratio is smaller)
 
 ```{r}
+moco_zipcode_calls <- moco_zipcode_calls |>
+  mutate(
+    min_popu = over18 - moe, #margin of error,
+    max_popu = over18 + moe
+)
+
+moco_zipcode_calls <- moco_zipcode_calls |>
+  mutate(
+    min_pct = calls/min_popu *1000, 
+    max_pct = calls/max_popu *1000
+  )
+moco_zipcode_calls
 ```
