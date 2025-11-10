@@ -43,7 +43,7 @@ Donations <- read_csv("data/sports-political-donations.csv")
 # Clean required data and prepare for analysis if needed. 
 Clean_Donations <- Donations |>
   clean_names() |>
-  mutate(amount = as.numeric(gsub("[$,]","",amount))) 
+  mutate(amount = as.numeric(gsub("[$,]","", amount))) 
 
 Clean_Donations
 
@@ -84,16 +84,25 @@ Clean_Donations |>
 #This data is telling me the average donation amounts for each political party, that is pretty cool! The data isn't all that surprising, seeing as Republicans donated the most. I do find it interesting that the number of doners doesn't exactly mirror the total amount donated. 
 
 
+# NEW Calculate percentages of total donations
+total_all <- sum(party_summary$total_donated)
+party_summary <- party_summary |>
+  mutate(percent_of_total = (total_donated / total_all) * 100)
+
+# Arrange from highest to lowest total donated
+party_summary <- party_summary |> arrange(desc(total_donated))
+
+party_summary
 
 
 ```
 
-### Sentence 2
+### Sentence 2 - Alex 
 
-* **Sentence text**: "Drilling down deeper into the data, we can see that federal contributions in each league lean red, except for in the WNBA:... Overall, 51.7 percent of all contributions by WNBA owners went to Democrats, with 42.3 percent going to Republicans."
+* **Sentence text**: " Overall, 51.7 percent of all contributions by WNBA owners went to Democrats, with 42.3 percent going to Republicans."
 
 
-* **Analysis summary**:I think this is another interesting statistic that highlights a possible difference between the WNBA and other leagues. I am wondering why the reason for this is, and what makes the WNBA different? This will be interesting data to analyze. 
+* **Analysis summary**: i was not able to confirm these results. In my analysis, 76.6% of WNBA contributions went to Democrats, while 19.7% went to Republicans. At first, I thought this was because an owner owned a team in a league other than the WNBA, but after this ended up not being the case. 
 
 ```{r}
 
@@ -123,12 +132,57 @@ WNBA_Contribs
 * **Sentence text**: Of the 160 owners and commissioners in ESPN’s database, 74 contributed a majority of their publicly searchable funds to Republican campaigns, with 48 donating a majority to Democrats and the rest sending most of their money to causes that aren’t fully aligned with either party.
 
 
-* **Analysis summary**: This statistic is important to the story because it gives a general overview of how the owners’ and commissioners’ donating habits. This is important context to have before the reader dives into further breakdown of the results.
+* **Analysis summary**: I was able to confirm that 48 owners donated the majority of their funds to Democrats, however, I was not able to confirm that 74 owners contributed the majority of their funds to Republican campaigns. This is because, in my analysis, 70 owners contributed the majority of their funding to Republicans. This four owner difference could be, in part, because the number of owners in the dataset we have is 158, while the article stated that it's datebase has 160 owners in it. 
+
 
 ```{r}
 
 # to do this code, we have group by owner name since each owner has individual entries. 
 # Put code to reverse engineer sentence here
+
+# Create a dataframe that lists the owners, which party they donatated to, and how much they donated to that party
+Owners_PartyDons <- Clean_Donations |>
+  group_by(owner, party) |>
+  summarise(Contrib = sum(Amount))
+
+# Add a column with the total amount each owner donated
+
+      # Create a dataframe with the total amount each owner donated
+      Owner_Total <- Clean_Donations |>
+        group_by(owner) |>
+        summarise(owner_total = sum(amount))
+      
+      # Join that dataframe to the first dataframe (that has the list of owners and party donations)
+      Owners_PartyDons <- Owners_PartyDons |>
+        left_join(owner_total)
+
+# Create a column listing what percent each owner donated to each party
+
+Owners_PartyDons <- Owners_PartyDons |>
+  mutate(
+    pct_don = (Contrib / owner_total) * 100
+  )
+
+# Find out how many owners contributed the majority of their funds to Republican campaigns
+
+Majority_Rep <- Owners_PartyDons |>
+  filter(party == "Republican" & pct_don > 50)
+
+# Find out how many owners contributed the majority of their funds to Democratic campaigns
+
+Majority_Dem <- Owners_PartyDons |>
+  filter(party == "Democrat" & Pct_Don > 50)
+
+# Display results of code below this codeblock
+
+nrow(Majority_Rep)
+nrow(Majority_Dem)
+nrow(
+  Donations |>
+    group_by(Owner) |>
+    summarise(count = n())
+)
+
 
 # Display results of code below this codeblock
 
@@ -138,10 +192,13 @@ WNBA_Contribs
 
 * **Sentence text**: Thirteen owners have contributed directly to Trump’s campaign or Trump super PACs in the 2020 election cycle, with contributions adding up to $1,746,423… By contrast, 20 owners have contributed directly to Biden or Biden’s super PACs, though at smaller totals, with overall contributions equaling $405,745.
 
-* **Analysis summary**: This sentence is important because it ties these political contributions directly to the major candidates in a recent election. The analysis for this also seems to be fairly straightforward to find using the filter(), group_by() and summarise() functions. 
+* **Analysis summary**: 
 
 ```{r}
 # Put code to reverse engineer sentence here
+
+Clean_Donations |> 
+  
 
 # Display results of code below this codeblock
 
