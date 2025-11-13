@@ -192,15 +192,58 @@ nrow(
 
 * **Sentence text**: Thirteen owners have contributed directly to Trump’s campaign or Trump super PACs in the 2020 election cycle, with contributions adding up to $1,746,423… By contrast, 20 owners have contributed directly to Biden or Biden’s super PACs, though at smaller totals, with overall contributions equaling $405,745.
 
-* **Analysis summary**: 
+* **Analysis summary**: I found that there is actually 18 owner/ owner groups that donated to Trump's campaign or his Super PACS. The contributions add up to $2,905,021	
 
 ```{r}
 # Put code to reverse engineer sentence here
+#shrump says 
+TrumpDonations2020 <- Clean_Donations |> 
+  filter(str_detect(recipient, "TRUMP VICTORY") |
+         str_detect(recipient, "Trump Victory") |
+         str_detect(recipient, "TRUMP MAKE AMERICA GREAT AGAIN COMMITTEE")| 
+         str_detect(recipient, "DONALD J. TRUMP FOR PRESIDENT, INC.")|
+         str_detect(recipient, "Trump Make America Great Again Committee") &
+         (election_year == 2020) #i need to find a way to make it  include only 2020 election donations first 
+      ) |>
+  group_by(owner) 
 
-Clean_Donations |> 
+
+TrumpTotal2020 <- Clean_Donations |> 
+  filter(str_detect(recipient, "TRUMP VICTORY") |
+         str_detect(recipient, "Trump Victory") |
+         str_detect(recipient, "TRUMP MAKE AMERICA GREAT AGAIN COMMITTEE")| 
+         str_detect(recipient, "DONALD J. TRUMP FOR PRESIDENT, INC.")|
+         str_detect(recipient, "Trump Make America Great Again Committee") &
+         (election_year == 2020)
+      ) |> 
+  summarize(total_amount_of_trump_contributions = sum(amount))
+
+TrumpDonations2020 |> 
+  summarize(each_owner_amount = sum(amount))
+
+TrumpTotal2020
   
 
+#joever 
+#BidenDonations <- Clean_Donations |> 
+  #filter(str_detect(recipent, "BIDEN FOR PRESIDENT") |
+         str_detect(recipent, "BIDEN ACTION FUND") |
+         str_detect(recipent, "BIDEN VICTORY FUND") |
+         str_detect(recipent, "Biden For President") |
+         str_detect(recipent, "Biden Action Fund") |
+         str_detect(recipent, "Biden Victory Fund") |
+         str_detect(recipent, "BIDEN FOR PRESIDENT") |
+         str_detect(recipent, "BIDEN FOR PRESIDENT") |
+         
+         
+         
+         
+         )
+  
 # Display results of code below this codeblock
+
+
+
 
 ```
 
