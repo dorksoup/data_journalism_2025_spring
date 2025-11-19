@@ -143,7 +143,7 @@ WNBA_Contribs
 # Create a dataframe that lists the owners, which party they donatated to, and how much they donated to that party
 Owners_PartyDons <- Clean_Donations |>
   group_by(owner, party) |>
-  summarise(Contrib = sum(Amount))
+  summarise(contrib = sum(amount))
 
 # Add a column with the total amount each owner donated
 
@@ -192,56 +192,50 @@ nrow(
 
 * **Sentence text**: Thirteen owners have contributed directly to Trump’s campaign or Trump super PACs in the 2020 election cycle, with contributions adding up to $1,746,423… By contrast, 20 owners have contributed directly to Biden or Biden’s super PACs, though at smaller totals, with overall contributions equaling $405,745.
 
-* **Analysis summary**: I found that there is actually 18 owner/ owner groups that donated to Trump's campaign or his Super PACS. The contributions add up to $2,905,021	
+* **Analysis summary**: I found that there is actually 12 owner/ owner groups that donated to Trump's campaign or his Super PACS for the 2020 campaign, maybe there is a hidden recipent name that was for Trump that I didn't consider. The contributions add up to $1,544,421. 
+
+As for Biden's 2020 campaign, there is a 20 owners for  as the total $228545 (21 rows but duplicate of an owner)
 
 ```{r}
 # Put code to reverse engineer sentence here
 #shrump says 
-TrumpDonations2020 <- Clean_Donations |> 
+
+#This is to see the amount of owners(through the rows)
+ 
+TrumpTotal2020 <- sports_donations |> 
   filter(str_detect(recipient, "TRUMP VICTORY") |
          str_detect(recipient, "Trump Victory") |
-         str_detect(recipient, "TRUMP MAKE AMERICA GREAT AGAIN COMMITTEE")| 
+         str_detect(recipient, "TRUMP MAKE AMERICA GREAT AGAIN COMMITTEE")|
          str_detect(recipient, "DONALD J. TRUMP FOR PRESIDENT, INC.")|
-         str_detect(recipient, "Trump Make America Great Again Committee") &
-         (election_year == 2020) #i need to find a way to make it  include only 2020 election donations first 
-      ) |>
-  group_by(owner) 
+         str_detect(recipient, "Trump Make America Great Again Committee")) 
 
+TrumpTotal2020 <- TrumpTotal2020 |>
+  filter(election_year == 2020)
 
-TrumpTotal2020 <- Clean_Donations |> 
-  filter(str_detect(recipient, "TRUMP VICTORY") |
-         str_detect(recipient, "Trump Victory") |
-         str_detect(recipient, "TRUMP MAKE AMERICA GREAT AGAIN COMMITTEE")| 
-         str_detect(recipient, "DONALD J. TRUMP FOR PRESIDENT, INC.")|
-         str_detect(recipient, "Trump Make America Great Again Committee") &
-         (election_year == 2020)
-      ) |> 
-  summarize(total_amount_of_trump_contributions = sum(amount))
-
-TrumpDonations2020 |> 
-  summarize(each_owner_amount = sum(amount))
+  #Code to see total amount for trump 2020 
+TrumpTotal2020 |> 
+  summarize(total_amount = sum(amount))
 
 TrumpTotal2020
-  
 
 #joever 
-#BidenDonations <- Clean_Donations |> 
-  #filter(str_detect(recipent, "BIDEN FOR PRESIDENT") |
-         str_detect(recipent, "BIDEN ACTION FUND") |
-         str_detect(recipent, "BIDEN VICTORY FUND") |
-         str_detect(recipent, "Biden For President") |
-         str_detect(recipent, "Biden Action Fund") |
-         str_detect(recipent, "Biden Victory Fund") |
-         str_detect(recipent, "BIDEN FOR PRESIDENT") |
-         str_detect(recipent, "BIDEN FOR PRESIDENT") |
-         
-         
-         
-         
-         )
-  
+
+#look at rows for the amount of donors
+BidenTotal2020 <- sports_donations |> 
+  filter(str_detect(recipient, "BIDEN FOR PRESIDENT") |
+         str_detect(recipient, "BIDEN ACTION FUND") |
+         str_detect(recipient, "BIDEN VICTORY FUND") |
+         str_detect(recipient, "Biden For President") |
+         str_detect(recipient, "Biden Action Fund") |
+         str_detect(recipient, "Biden Victory Fund") |
+         str_detect(recipient, "Biden for President")
+         ) 
+
+
+BidenTotal2020 |> summarize(total_amount = sum(amount))
 # Display results of code below this codeblock
 
+BidenTotal2020
 
 
 
@@ -260,14 +254,29 @@ TrumpTotal2020
 # Put code to reverse engineer sentence here
 
 #THE DATA needs to be clean like this because the amount data set needs to be set to numeric
-clean_Donations <- Donations |>
-  clean_names() |>
-  mutate(amount = as.numeric(gsub("[$,]","",amount))) 
+owner_totals <- sports_donations |> 
+  group_by(owner) |> 
+  summarize(total_donated = sum(amount, na.rm = TRUE)) |> 
+  arrange(desc(total_donated))
 
-Clean_Donations
+top40_owners <- owner_totals |> 
+  slice_max(order_by = total_donated, n = 40)
 
+sports_donations |> 
+  semi_join(top40_owners, by = "owner") |>
+  group_by(party) |>
+  summarize(
+    total_donated = sum(amount, na.rm = TRUE)
+  ) |>
+  mutate(
+    percent = total_donated / sum(total_donated) * 100
+  )
 
+#The total donation amount of the top 40 owners 
+top40total<- sum(owner_totals$total_donated, na.rm = TRUE)
+ top40total 
 
+total_overall_donated
 #top 40 donations code  
 top_40donations <- Clean_Donations |>
   group_by(owner) |>
@@ -298,5 +307,37 @@ top40_party <- Clean_Donations |>
   top_n(40, total_amount)
 
 top40_party
+
+```
+
+
+```{r} 
+# Clean required data and prepare for analysis if needed. 
+sports_donations <- read_csv("data/sports-political-donations.csv")
+sports_donations <- sports_donations |>
+  clean_names()
+sports_donations <- sports_donations %>%
+  mutate(amount = as.numeric(gsub("[$,]", "", amount)))
+
+
+sports_donations_2020 <- sports_donations |>
+  filter(election_year == 2020)
+
+
+sports_donations_2020 <- sports_donations_2020 |>
+  mutate(recipient_lower = tolower(recipient))
+
+
+sports_donations_2020 <- sports_donations_2020 |>
+  mutate(candidate = case_when(
+    str_detect(recipient_lower, "trump") ~ "trump",
+    str_detect(recipient_lower, "biden") ~ "biden",
+    TRUE ~ NA_character_
+  ))
+
+sports_donations_2020 <- sports_donations_2020 |>
+  filter(!is.na(candidate))
+
+sports_donations_2020
 
 ```
