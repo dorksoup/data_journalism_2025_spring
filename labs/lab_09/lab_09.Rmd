@@ -121,5 +121,7 @@ moco_overdose_zip<- moco_overdoses2022 |>
     mutate(
         pct_calls = od_amount/ sum(od_amount)*100
     )
+
+moco_overdose_zip
 write_csv(moco_overdose_zip, "data/moco_overdoses_lab9.csv")
 ```

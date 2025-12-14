@@ -65,7 +65,7 @@ So, to scrape, the first thing we need to do is start with the URL. Let's store 
 **Task** Run the following code in the gray-colored codeblock below to save the URL
 
 ```{r}
-mde_url <- "https://news.maryland.gov/msde/category/pressreleases/"
+mde_url <- "https://news.maryland.gov/msde/category/newsreleases/"
 ```
 
 When we go to the web page, we can see a nicely-designed page that contains our information.
@@ -147,7 +147,7 @@ Let's say we are interested in 2023, so all we need to do now is to store that f
 
 ### Task 5: Save one table from the HTML source
 
-**Task** Run the following code in the gray-colored codeblock below to extract all tables in the HTML and save it as a dataframe. What do you notice about the columns? **Answer**
+**Task** Run the following code in the gray-colored codeblock below to extract all tables in the HTML and save it as a dataframe. What do you notice about the columns? **Answer** Shows theo one news release from the date
 
 ```{r}
 # Read in all html from table, store all tables on page as nested list of dataframes.
@@ -182,7 +182,7 @@ results <- mde_url |>
 
 results <- results[[1]] |>
   clean_names() |>
-  rename(title = press_releases) |>
+  rename(title = news_releases) |>
   mutate(date = mdy(date))
 
 # show the dataframe
@@ -244,7 +244,7 @@ tags. What does the output suggest about how many
 
 <ul>
 
-tags there are in the HTML source? **Answer**
+tags there are in the HTML source? **Answer** There is 20 <ul> tags 
 
 ```{r}
 osp_results |> html_elements('li')
@@ -266,7 +266,7 @@ tags. To do that, we add `html_text()` to the end of the last code block:
 
 <li>
 
-tags. Describe the output: **Answer**
+tags. Describe the output: **Answer** I get words inside the list 
 
 ```{r}
 osp_results |> html_elements('li') |> html_text()
@@ -280,10 +280,12 @@ Ok, so now we can see the press releases. But they are surrounded by a bunch of 
 
 tags into a dataframe
 
-**Task** Run the following code in the gray-colored codeblock below to make a dataframe. Describe the output: **Answer**
+**Task** Run the following code in the gray-colored codeblock below to make a dataframe. Describe the output: **Answer** It is now a tibble  
 
 ```{r}
 releases <- osp_results |> html_elements('li') |> html_text() |> as_tibble()
+
+releases
 ```
 
 Now we're getting closer. The press releases have a specific HTML class tied to the
@@ -302,6 +304,8 @@ elements
 
 ```{r}
 releases <- osp_results |> html_elements('li.listing-item') |> html_text() |> as_tibble()
+
+releases 
 ```
 
 Ok, this is *better*, but it's still not great. We have at least two issues:
@@ -316,7 +320,15 @@ Let's solve both of those using the `separate()` function, which does what you t
 **Task** Run the following code in the gray-colored codeblock below to split the `value` column into two columns based on the ":" character and name them:
 
 ```{r}
-releases <- osp_results |> html_elements('li.listing-item') |> html_text() |> as_tibble() |> separate(value, c('date', 'title'), sep=":")
+releases <- osp_results |> 
+  html_elements('li.listing-item') |> 
+  html_text() |> as_tibble() |> 
+  separate(value, c('date', 'title'), sep=":") 
+
+releases
+
+  
+  
 ```
 
 That worked, but it also exposed a couple of things, as that Warning message indicates: not all of the rows had a colon in them and the `title` column has a leading space. Let's fix both of those - we'll drop the rows where the title is NA.

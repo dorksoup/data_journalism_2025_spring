@@ -299,6 +299,7 @@ md_county_population <- md_county_population |>
   select(county, population, geometry)
 
 md_county_population
+#mapview
 ```
 
 Now we can join them!
