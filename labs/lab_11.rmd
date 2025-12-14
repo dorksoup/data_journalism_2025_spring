@@ -88,6 +88,11 @@ Finally, tell me what questions you could ask of this data if you had all of his
 
 **A3**
 
+--- Which press release involves the most money in the title or text?
+---Which is the most common word or phrase in the titles using tdytext?
+--- Is there any dates that have the most press releases?
+--- Which press releases mention topics related to administration policies of Trump's presidency?
+
 ```{r}
 # Get HTML
 van_hollen_press <- "https://www.vanhollen.senate.gov/news/press-releases" |> read_html()
@@ -126,5 +131,5 @@ results_url <- results_url |>
 unique() |>
 rename(url = value)
 
-combined_results<- bind_cols(results_h2, results_dates, results_url)
+combined_results<- bind_cols(vh_titlesh2, vh_dates, results_url)
 ```
