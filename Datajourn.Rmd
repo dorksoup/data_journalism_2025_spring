@@ -1,0 +1,237 @@
+---
+title: "pg county census data"
+author: "devin etta"
+date: "22026-02-10"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries and establish settings
+
+
+```{r}
+# Turn off scientific notation
+options(scipen=999)
+
+# Load libraries
+library(tidyverse)
+library(sf)
+library(janitor)
+library(maptools)
+library(tigris)
+library(tidycensus)
+library(ggthemes)
+library(units)
+```
+
+
+## Setup Census API
+
+```{r}
+
+census_api_key("c835b290fcfd849bd146850c22c7b7ddda145ae2")
+```
+
+```{r}
+acs5_vars <- load_variables(2024, "acs5", cache = TRUE)
+
+view(acs5_vars)
+
+
+#Variables about race, economics 
+
+#B19052_002 Economics total wage and income
+#B19113_001 Estimate!!Median family income in the past 12 months (in 2024 inflation-adjusted dollars)
+#B02001_001 Estimate!!Total:Race   #B02001_003 black
+#B19013_001 Estimate!!Median household income in the past 12 months (in 2024 inflation-adjusted dollars)
+
+                          
+#Media houshold icncome             1
+pg_income <- get_acs(
+  geography = "tract",
+  variables = "B19013_001", 
+  state = "MD", 
+  county = "Prince George's",
+  year = 2024,
+  geometry = TRUE 
+)
+```
+
+```{r}
+ggplot(data = pg_income) +
+   geom_sf(aes(fill = estimate)) +
+   scale_fill_viridis_c("Median Household Income" ) + 
+   theme_void() + 
+   labs(title = "Median Household Income for PG county") +
+   theme(plot.title = element_text(hjust = 0.5))
+
+
+pg_race <- get_acs(
+  geography = "tract",
+  variables = c(
+    Black = "B02001_003", 
+    White = "B02001_002", 
+    Hispanic = "B03002_012", 
+    Asian = "B02001_005",
+    Total = "B02001_001"
+  ),
+  state = "MD", 
+  county = "Prince George's",
+  year = 2024,
+  geometry = TRUE, 
+)
+ # All the races in pg county percentages, compared to total
+pg_race_perc <- pg_race |>
+  group_by(GEOID, geometry) |>
+ summarize (
+          Black_Percentage = sum(ifelse(variable == "Black", estimate, 0)) / sum(ifelse(variable == "Total", estimate, 0)) * 100,
+          White_Percentage = sum(ifelse(variable == "White", estimate, 0)) / sum(ifelse(variable == "Total", estimate, 0)) * 100,
+          Hispanic_Percentage = sum(ifelse(variable == "Hispanic", estimate, 0)) / sum(ifelse(variable == "Total", estimate, 0)) * 100,
+          Asian_Percentage = sum(ifelse(variable == "Asian", estimate, 0)) / sum(ifelse(variable == "Total", estimate, 0)) * 100
+  )
+
+# Black Population Percentage Map
+ggplot(data = pg_race_perc) +
+  geom_sf(aes(fill = Black_Percentage)) +
+  scale_fill_viridis_c("Black Population (%)") +
+  theme_void() +
+  labs(title = "Percentage of Black Population in Prince George's County") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# White Population Percentage Map
+ggplot(data = pg_race_perc) +
+  geom_sf(aes(fill = White_Percentage), color = NA) +
+  scale_fill_viridis_c("White Population (%)") +
+  theme_void() +
+  labs(title = "Percentage of White Population in Prince George's County") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Hispanic Population Percentage Map
+ggplot(data = pg_race_perc) +
+  geom_sf(aes(fill = Hispanic_Percentage), color = NA) +
+  scale_fill_viridis_c("Hispanic Population (%)") +
+  theme_void() +
+  labs(title = "Percentage of Hispanic Population in Prince George's County") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Asian Population Percentage Map
+ggplot(data = pg_race_perc) +
+  geom_sf(aes(fill = Asian_Percentage), color = NA) +
+  scale_fill_viridis_c("Asian Population (%)") +
+  theme_void() +
+  labs(title = "Percentage of Asian Population in Prince George's County") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+```{r}
+
+#Printing otu data 
+write_csv(pg_income, "cns_data/pg_county/pg_income_24.csv"),
+
+pinc <- ggplot(data = pg_income) +
+   geom_sf(aes(fill = estimate)) +
+   scale_fill_viridis_c("Median Household Income" ) + 
+   theme_void() + 
+   labs(title = "Median Household Income for PG county") +
+   theme(plot.title = element_text(hjust = 0.5))
+
+ 
+income_plot <- pinc$data
+write_csv(income_plot, "cns_data/pg_county/ggplot_income.csv")
+
+
+#race 
+ 
+pblack <- ggplot(data = pg_race_perc) +
+  geom_sf(aes(fill = Black_Percentage)) +
+  scale_fill_viridis_c("Black Population (%)") +
+  theme_void() +
+  labs(title = "Percentage of Black Population in Prince George's County") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+blackpg_plot <- pblack$data
+write_csv(blackpg_plot, "cns_data/pg_county/ggplot_blackpop.csv")
+```
+
+```{r}
+  variables = c(Black = "B02001_003")
+  state = "MD" 
+  county = "Prince George's"
+  year = 2024,
+  geometry = TRUE
+)
+
+#total race pop
+
+pg_total_race <-  get_acs(
+  geography = "tract",
+  variables = c(Total = "B02001_001"),
+  state = "MD", 
+  county = "Prince George's",
+  year = 2024,
+  geometry = TRUE
+)
+
+pg_pop_black <- pg_black |>
+  left_join(pg_total_race, by = c("GEOID", "geometry"))|>
+  mutate(Percentage_Black = (estimate / estimate.y) * 100) 
+
+ggplot(data = pg_pop_black) +
+   geom_sf(aes(fill = Percentage_Black), color = NA) +
+   scale_fill_viridis_c("Black Population" ) + 
+   theme_void() +
+   labs(title = "Black Population in PG County",
+        subtitle = "Test data from 2024 ACS") +
+    theme(plot.title = element_text(hjust = 0.5))
+ 
+```
+
+```{r}
+
+
+pg_pop <- get_acs(
+  geography = "tract",
+  variables = "B01003_001",
+  state = "MD", 
+  county = "Prince George's",
+  year = 2024,
+  geometry = TRUE, 
+  output = "wide"
+) |> rename(total_population = B01003_001E) 
+
+ 
+# st_area() calculates area in square meters by default.
+# We convert the units to square miles for the final density calculation.
+pg_density <- pg_pop|>
+  mutate(
+    area_sq_meters = st_area(geometry),
+    area_sq_miles = set_units(area_sq_meters, "mi^2"),
+    # Calculate population density (people per square mile)
+    pop_density = total_population / as.numeric(area_sq_miles)
+  )
+
+
+# Calculate land area in persons per square mile
+#pg_density <- pg_pop |>
+ # mutate(
+    #area_sq_miles = set_units(st_area(.), "mi^2"),
+    # Convert area  a numeric for
+   # area_sq_miles = as.numeric(area_sq_miles),
+   # pop_density = population / area_sq_miles )
+
+
+ggplot(data = pg_density) + 
+  geom_sf(aes(fill = pop_density, color = NA)) +
+   scale_fill_viridis_c("Population Density" ) + 
+   theme_void() +
+   labs(title = "Population Density ;  Person per Sqaure Mile in PG County",
+        subtitle = "Test data from 2024 ACS") +
+    theme(plot.title = element_text(hjust = 0.5))
+ 
+
+```

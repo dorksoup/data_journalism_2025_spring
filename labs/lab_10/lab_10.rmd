@@ -62,7 +62,7 @@ electoral_vote <- md_statewide_county |>
 #Geometry for Marylands counties 
 
 md_counties <- counties |>
-  filter(STATEFP == "24")|>
+  filter(STATEFP 2== "24")|>
   clean_names()
 
 md_counties

@@ -31,9 +31,9 @@ umd_courses
 
 ## Milestone 02 !! Understanding the Dataset and Limits.
 
-This UMD course data is similar to the one from the lab before. However the differences are shown in th amount of variables. There is only 7 columns in this UMD_COURSES. Section column and syllabus_count are absent from this data set, so this takes away some of the more statistical quantitative analysis that can be made. But the department, seats, descriptions, course title and professor name can provide enough of the questions. 
+This UMD course data is similar to the one from the lab before. However the differences are shown in th amount of variables. There is only 7 columns in this UMD_COURSES. Section column and syllabus_count are absent from this data set, so this takes away some of the more statistical quantitative analysis that can be made. But the department, seats, descriptions, course title and professor name can provide enough of the questions.  
 
-Also this specific data set only goes into the spring of 2023. This limits some of the questions I provided, like the one about the "contemporary Trump Department of Education's" definition of professional. Although, this might prove some type of correlation between the reasoning stripping the professional label from certain majors and  the trend of those courses availability.On the other hand, I am not sure if that holds any relevance since this data is from nearly three years ago. 
+Also this specific data set only goes into the spring of 2023 and has missing semesters. Half of 2019 semesters are not provided which would make it hard to see trends. I would probably not work with the data before the gaps if I want to come up with sound conclusions. Also the data being a bit outdated limits some of the questions I provided, like the one about the "contemporary Trump Department of Education's" definition of professional. Although, this might prove some type of correlation between the reasoning stripping the professional label from certain majors and  the trend of those courses availability.On the other hand, I am not sure if that holds any relevance since this data is from nearly three years ago. 
 
 Any of the questions that have to do with numbers will be fine.  
 
@@ -177,9 +177,10 @@ chosen_words
 ```
 
 **Q5** 
-What school has had the most classes removed as the semesters go by? (Or calculate the percent change from the courses in the department) 
-Importance?:STEM vs Humanities 
+What school has had the most classes removed as the semesters go by? (Or calculate the percent change from the department
 **A5**
+
+There was not one semester that had the same exact courses as another (which makes sense with the winter and summer classes.) While the Business department has the most courses provided with the data frame, it wasn't even on top 20 of the departments with the highest percent change. Departments like University Honors, Physics, and School of Music had an average percent change of courses provided over 1000 percent. While Global Communities, Executive MBA Program, Office of Undergraduate Research had negative average percent change of courses provided throughout semester. 
 
 ```{r}
 department_ref <- umd_courses |>
@@ -256,19 +257,24 @@ depart_class_termlist_2 <- depart_class_termlist |>
 #print tibble
 depart_class_termlist 
   
-long_form <- depart_class_termlist |>
-  pivot_longer(cols = starts_with("term_"), 
+
+
+avg_percent_change <- depart_class_termlist |>
+  select(department, starts_with("term_")) |> 
+  pivot_longer(cols = starts_with("term_"),  #long format
                names_to = "term", 
-               values_to = "class_count")|> mutate(term = factor(term, levels = unique(term)))
+               values_to = "class_count") |> 
+  group_by(department) |>  
+  arrange(term) |>  #  the terms are in order i guess
+  mutate(percent_change = (class_count - lag(class_count)) / lag(class_count) * 100) |>  # percent change
+  summarise(average_percent_change = mean(percent_change, na.rm = TRUE)) |> 
+  ungroup() 
 
-plot5 <- ggplot(long_results, aes(x = term, y = class_count, color = department, group = department)) +
-  geom_line() + 
-  labs(title = "Class Counts by Term and Department",
-       x = "Term",
-       y = "Class Count",
-       color = "Department") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-print(plot5)
+#arrange from high percent change to low
+avg_percent_change |>
+  arrange(desc(average_percent_change))
+
+
+
 ```
